@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>🎁 จับบัดดี้ออนไลน์</title>
+<style>
+body { font-family:sans-serif; background:#f5f7fb; text-align:center; padding:30px; }
+input,button { padding:10px; margin:8px; width:250px; border-radius:8px; }
+button { cursor:pointer; background:#007bff; color:#fff; border:none; }
+button:hover{background:#0056b3;}
+#userPanel,#adminPanel{margin-top:20px;}
+#adminPanel{background:#fff;padding:15px;border-radius:10px;width:90%;max-width:500px;margin:0 auto;}
+pre{background:#f0f0f0;text-align:left;padding:10px;border-radius:8px;}
+</style>
+</head>
+<body>
+
+<h2>🎁 ระบบจับบัดดี้ออนไลน์</h2>
+
+<input type="text" id="name" placeholder="ชื่อของคุณ"><br>
+<input type="password" id="pass" placeholder="รหัสผ่าน (≥4 ตัว)"><br>
+<button onclick="login()">ล็อกอิน / ตั้งรหัส</button>
+
+<div id="userPanel" style="display:none;">
+  <h3>สวัสดี <span id="userName"></span></h3>
+  <button onclick="drawBuddy()">🎲 จับบัดดี้</button>
+  <p id="result"></p>
+  <h4>สถานะผู้เข้าร่วม</h4>
+  <p>จำนวนผู้เข้าร่วม: <span id="totalParticipants"></span></p>
+  <p>จับบัดดี้ไปแล้ว: <span id="drawnCount"></span></p>
+  <pre id="participantsList"></pre>
+</div>
+
+<div id="adminPanel" style="display:none;">
+  <h3>🛠️ แผงควบคุมแอดมิน</h3>
+  <input type="text" id="newName" placeholder="เพิ่มชื่อผู้เข้าร่วม">
+  <button onclick="addUser()">เพิ่มรายชื่อ</button><br>
+  <button onclick="viewAll()">ดูผลทั้งหมด</button>
+  <button onclick="resetAll()">ล้างผลจับบัดดี้</button>
+  <button onclick="clearUsers()">ล้างรายชื่อผู้เข้าร่วมทั้งหมด</button>
+  <pre id="adminResult"></pre>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzNYhj_FJgb6iAa5m_-zRsinc2DpfVOoz4HCNSjZDivcvpEGEtkr0GD-sAuJSWYCZt3hw/exec";
+let currentUser=null,isAdmin=false;
+
+async function postData(action,extra={}) {
+  const form = new URLSearchParams({action,...extra});
+  const res = await fetch(API_URL,{method:"POST",body:form});
+  return res.json();
+}
+
+async function login(){
+  const name=document.getElementById("name").value.trim();
+  const pass=document.getElementById("pass").value.trim();
+  if(!name||!pass) return alert("กรอกชื่อและรหัสก่อน");
+  const res=await postData("login",{name,pass});
+  if(res.error) return alert(res.error);
+  alert(res.msg);
+  currentUser=name;
+  isAdmin=res.isAdmin;
+  document.getElementById("userPanel").style.display=isAdmin?"none":"block";
+  document.getElementById("adminPanel").style.display=isAdmin?"block":"none";
+  document.getElementById("userName").textContent=currentUser;
+  await updateStatus();
+}
+
+async function drawBuddy(){
+  const res=await postData("draw",{name:currentUser});
+  document.getElementById("result").textContent=res.error||res.msg;
+  await updateStatus();
+}
+
+async function viewAll(){
+  const res=await postData("view",{name:currentUser});
+  if(res.error) return alert(res.error);
+  document.getElementById("adminResult").textContent=JSON.stringify(res.data,null,2);
+}
+
+async function updateStatus(){
+  const res=await postData("view",{name:currentUser});
+  if(res.error) return;
+  if(!isAdmin){
+    document.getElementById("totalParticipants").textContent = res.totalParticipants;
+    document.getElementById("drawnCount").textContent = res.drawnCount;
+    document.getElementById("participantsList").textContent = res.participants.map(u=>`${u.name} → ${u.drawn?"จับแล้ว":"ยังไม่จับ"}`).join("\n");
+  }
+}
+
+async function resetAll(){
+  if(!confirm("ต้องการล้างผลจับบัดดี้ทั้งหมดจริงหรือไม่?")) return;
+  const res=await postData("reset",{name:currentUser});
+  alert(res.msg||res.error);
+  await updateStatus();
+}
+
+async function clearUsers(){
+  if(!confirm("ต้องการลบผู้เข้าร่วมทั้งหมดจริงหรือไม่?")) return;
+  const res=await postData("clear_users",{name:currentUser});
+  alert(res.msg||res.error);
+}
+
+async function addUser(){
+  const newName=document.getElementById("newName").value.trim();
+  if(!newName) return alert("กรุณากรอกชื่อใหม่");
+  const res=await postData("add_user",{name:currentUser,newName});
+  alert(res.msg||res.error);
+  await updateStatus();
+}
+</script>
+
+</body>
+</html>
