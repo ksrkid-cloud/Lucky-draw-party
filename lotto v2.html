@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎁 จับบัดดี้ออนไลน์</title>
+<style>
+body {
+  font-family: "Prompt", sans-serif;
+  background: #f5f7fb;
+  text-align: center;
+  padding: 30px;
+}
+h2 { color: #333; }
+input, button {
+  padding: 10px;
+  margin: 8px;
+  width: 250px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 16px;
+}
+button {
+  cursor: pointer;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  transition: 0.2s;
+}
+button:hover { background-color: #0056b3; }
+#userPanel, #adminPanel { margin-top: 20px; }
+#adminPanel { background: #fff; padding: 15px; border-radius: 10px; width: 90%; max-width: 500px; margin: 0 auto; }
+pre { text-align: left; background: #f0f0f0; padding: 10px; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<h2>🎁 ระบบจับบัดดี้ออนไลน์</h2>
+
+<!-- ล็อกอิน -->
+<input type="text" id="name" placeholder="ชื่อของคุณ"><br>
+<input type="password" id="pass" placeholder="รหัสผ่าน (≥4 ตัว)"><br>
+<button onclick="login()">ล็อกอิน / ตั้ง
